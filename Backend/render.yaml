@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: learnnest-backend
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: GNEWS_API_KEY
+        sync: false
+      - key: PORT
+        value: 5000
+    # Add persistent disk for file uploads
+    disk:
+      name: uploads-disk
+      mountPath: /opt/render/project/src/uploads
+      sizeGB: 1

@@ -1,0 +1,230 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Warm educational theme - cream & teal */
+    --background: 33 100% 98%;
+    --foreground: 217 33% 17%;
+
+    --card: 33 100% 99%;
+    --card-foreground: 217 33% 17%;
+
+    --popover: 33 100% 99%;
+    --popover-foreground: 217 33% 17%;
+
+    /* Rich teal primary */
+    --primary: 173 80% 40%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Warm coral/orange secondary */
+    --secondary: 24 95% 53%;
+    --secondary-foreground: 0 0% 100%;
+
+    /* Soft peach muted */
+    --muted: 33 100% 96%;
+    --muted-foreground: 217 13% 45%;
+
+    /* Deep purple accent */
+    --accent: 258 90% 66%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 33 50% 88%;
+    --input: 33 50% 88%;
+    --ring: 173 80% 40%;
+
+    --radius: 0.75rem;
+
+    /* Sidebar warm cream theme */
+    --sidebar-background: 33 100% 97%;
+    --sidebar-foreground: 217 33% 20%;
+    --sidebar-primary: 173 80% 40%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 33 80% 92%;
+    --sidebar-accent-foreground: 217 33% 20%;
+    --sidebar-border: 33 50% 88%;
+    --sidebar-ring: 173 80% 40%;
+
+    /* Custom animation durations */
+    --duration-fast: 120ms;
+    --duration-normal: 220ms;
+    --duration-slide: 300ms;
+    --duration-drawer: 360ms;
+
+    /* Custom easings */
+    --ease-smooth: cubic-bezier(0.22, 0.9, 0.25, 1);
+    --ease-collapse: cubic-bezier(0.2, 0.8, 0, 0.9);
+  }
+
+  .dark {
+    /* Dark warm educational theme */
+    --background: 217 33% 10%;
+    --foreground: 33 100% 98%;
+
+    --card: 217 33% 14%;
+    --card-foreground: 33 100% 98%;
+
+    --popover: 217 33% 14%;
+    --popover-foreground: 33 100% 98%;
+
+    --primary: 173 70% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 24 90% 58%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 217 33% 20%;
+    --muted-foreground: 217 13% 65%;
+
+    --accent: 258 85% 70%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 217 33% 22%;
+    --input: 217 33% 22%;
+    --ring: 173 70% 50%;
+
+    --sidebar-background: 217 33% 12%;
+    --sidebar-foreground: 33 100% 95%;
+    --sidebar-primary: 173 70% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 217 33% 18%;
+    --sidebar-accent-foreground: 33 100% 95%;
+    --sidebar-border: 217 33% 22%;
+    --sidebar-ring: 173 70% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+}
+
+@layer utilities {
+  /* Animation utilities */
+  .animate-slide-in {
+    animation: slide-in var(--duration-drawer) var(--ease-smooth);
+  }
+
+  .animate-slide-out {
+    animation: slide-out var(--duration-drawer) var(--ease-smooth);
+  }
+
+  .animate-collapse {
+    transition: width var(--duration-slide) var(--ease-collapse);
+  }
+
+  .animate-fade-slide {
+    animation: fade-slide 240ms ease-out;
+  }
+
+  /* Hover interactions */
+  .hover-lift {
+    transition: all var(--duration-fast) ease-out;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  /* Focus ring */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2;
+  }
+
+  /* Paper texture effect */
+  .paper-texture {
+    background-image: 
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 31px,
+        hsl(var(--border)) 31px,
+        hsl(var(--border)) 32px
+      );
+  }
+
+  /* Custom scrollbar for book pages */
+  .book-scrollbar::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .book-scrollbar::-webkit-scrollbar-track {
+    background: #fef3c7;
+    border-radius: 4px;
+  }
+
+  .book-scrollbar::-webkit-scrollbar-thumb {
+    background: #fbbf24;
+    border-radius: 4px;
+  }
+
+  .book-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #f59e0b;
+  }
+
+  .dark .book-scrollbar::-webkit-scrollbar-track {
+    background: #78350f;
+  }
+
+  .dark .book-scrollbar::-webkit-scrollbar-thumb {
+    background: #92400e;
+  }
+
+  .dark .book-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #b45309;
+  }
+}
+
+@keyframes slide-in {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-out {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+}
+
+@keyframes fade-slide {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
