@@ -10,6 +10,7 @@ A comprehensive educational platform with AI-powered learning tools, interactive
 ## ✨ Features
 
 ### 📚 Learning Tools
+
 - **Quiz Generator** - AI-powered quiz generation
 - **Flashcard Generator** - Create interactive flashcards
 - **Question Bot** - AI assistant for learning queries
@@ -19,18 +20,21 @@ A comprehensive educational platform with AI-powered learning tools, interactive
 - **Hear and Learn** - Audio-based learning
 
 ### 🎮 Game Zone
+
 - **IQ Test** - Test your intelligence quotient
 - **Aptitude Test** - Assess problem-solving skills
 - **GK Test** - General knowledge challenges
 - **2048 Game** - Classic puzzle game
 
 ### 👥 Collaboration Features
+
 - **Study Rooms** - Virtual collaborative study spaces
 - **Real-time Chat** - Live messaging with participants
 - **Note Board** - Shared note-taking
 - **Media Sharing** - Share images and files
 
 ### 📰 Additional Features
+
 - **News Feed** - Latest educational news
 - **User Profiles** - Personalized dashboards
 - **Authentication** - Secure login/signup
@@ -38,6 +42,7 @@ A comprehensive educational platform with AI-powered learning tools, interactive
 ## 🛠️ Tech Stack
 
 ### Frontend
+
 - **React 18** with TypeScript
 - **Vite** - Fast build tool
 - **TailwindCSS** - Utility-first CSS
@@ -47,6 +52,7 @@ A comprehensive educational platform with AI-powered learning tools, interactive
 - **Google Gemini AI** - AI-powered features
 
 ### Backend
+
 - **Node.js** with Express
 - **MongoDB** with Mongoose
 - **Socket.io** - WebSocket server
@@ -81,6 +87,7 @@ learnnest-dashboard-main/
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - Node.js (v18 or higher)
 - MongoDB Atlas account
 - Google Gemini API key
@@ -89,12 +96,14 @@ learnnest-dashboard-main/
 ### Local Development
 
 #### 1. Clone the Repository
+
 ```bash
 git clone https://github.com/santhoshkumaritla/peekuthon-education.git
 cd peekuthon-education
 ```
 
 #### 2. Backend Setup
+
 ```bash
 cd Backend
 npm install
@@ -113,6 +122,7 @@ npm run dev
 Backend will run on: http://localhost:5000
 
 #### 3. Frontend Setup
+
 ```bash
 cd frontend
 npm install
@@ -164,10 +174,12 @@ Frontend will run on: http://localhost:5173
 ## 📡 API Endpoints
 
 ### Authentication
+
 - `POST /api/auth/register` - Register new user
 - `POST /api/auth/login` - Login user
 
 ### Resources
+
 - `GET/POST /api/books` - Books management
 - `GET/POST /api/quizzes` - Quizzes management
 - `GET/POST /api/flashcards` - Flashcards management
@@ -177,6 +189,7 @@ Frontend will run on: http://localhost:5173
 - `GET/POST /api/concepts` - Concept animations
 
 ### Study Rooms
+
 - `GET /api/study-rooms` - List all study rooms
 - `POST /api/study-rooms` - Create study room
 - `GET /api/study-rooms/:id` - Get room details
@@ -184,11 +197,13 @@ Frontend will run on: http://localhost:5173
 - `POST /api/study-rooms/:id/leave` - Leave room
 
 ### News
+
 - `GET /api/news` - Fetch latest news
 
 ## 🔐 Environment Variables
 
 ### Backend (.env)
+
 ```env
 PORT=5000
 MONGODB_URI=mongodb+srv://...
@@ -198,6 +213,7 @@ FRONTEND_URL=http://localhost:5173
 ```
 
 ### Frontend (.env)
+
 ```env
 VITE_API_BASE_URL=http://localhost:5000/api
 VITE_SOCKET_URL=http://localhost:5000
