@@ -43,7 +43,7 @@ router.get('/search', async (req, res) => {
     const data = await response.json();
     
     res.json({
-      success: true,
+      success: true, 
       data: {
         totalArticles: data.totalArticles || 0,
         articles: data.articles || []
