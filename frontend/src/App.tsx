@@ -26,6 +26,7 @@ import Profile from "./pages/Profile";
 import StudyRoomsList from "./pages/StudyRoomsList";
 import StudyRoom from "./pages/StudyRoom";
 import FlowchartGenerator from "./pages/FlowchartGenerator";
+import CourseGenerator from "./pages/CourseGenerator";
 import { Menu } from "lucide-react";
 
 const queryClient = new QueryClient();
@@ -83,6 +84,7 @@ const AppContent = () => {
                       <Route path="/quiz-generator" element={<QuizGenerator />} />
                       <Route path="/recommendations" element={<LearningResourceGenerator />} />
                       <Route path="/flashcards" element={<FlashCardGenerator />} />
+                      <Route path="/course-generator" element={<CourseGenerator />} />
                       <Route path="/game-zone" element={<GameZone />} />
                       <Route path="/news" element={<News />} />
                       <Route path="/hear-and-learn" element={<HearAndLearn />} />

@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Loader2, Mic } from "lucide-react";
+import { Loader2, Mic, MicOff, Send } from "lucide-react";
 
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_HEAR_API_KEY || "";
 const GEMINI_MODEL = "gemini-2.0-flash";
@@ -18,12 +18,14 @@ type ConversationMessage = {
 };
 
 const HearAndLearn = () => {
-  const [sessionActive, setSessionActive] = useState(true);
+  const [sessionActive, setSessionActive] = useState(false);
   const [listening, setListening] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [status, setStatus] = useState<"idle" | "listening" | "responding" | "greeting">("greeting");
+  const [status, setStatus] = useState<"idle" | "listening" | "responding" | "greeting">("idle");
   const [supportsSpeech, setSupportsSpeech] = useState(true);
   const [assistantReply, setAssistantReply] = useState("");
+  const [currentTranscript, setCurrentTranscript] = useState("");
   const [manualQuestion, setManualQuestion] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [conversation, setConversation] = useState<ConversationMessage[]>([]);
@@ -63,28 +65,13 @@ const HearAndLearn = () => {
     setSessionActive(false);
     setStatus("idle");
     setListening(false);
+    setIsRecording(false);
+    setCurrentTranscript("");
     recognitionRef.current?.stop?.();
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }
   }, []);
-
-  const tryStartListening = useCallback(
-    (force = false) => {
-      if (!supportsSpeech) return;
-      if (!sessionActive && !force) return;
-      if (listening) return;
-      const recognition = recognitionRef.current;
-      if (!recognition) return;
-
-      try {
-        recognition.start();
-      } catch (err) {
-        // InvalidStateError happens if start is called twice quickly; ignore.
-      }
-    },
-    [listening, sessionActive, supportsSpeech]
-  );
 
   const deliverAssistantReply = useCallback(
     async (reply: string) => {
@@ -106,6 +93,7 @@ const HearAndLearn = () => {
       updateConversation(updatedConversation);
       setStatus("responding");
       setError(null);
+      setCurrentTranscript(""); // Clear transcript after sending
 
       try {
         const payload = {
@@ -169,14 +157,45 @@ Keep tone friendly, helpful, and supportive. If the learner is practicing Englis
     [deliverAssistantReply, updateConversation]
   );
 
+  const toggleRecording = useCallback(() => {
+    if (!supportsSpeech) return;
+    
+    const recognition = recognitionRef.current;
+    if (!recognition) return;
+
+    if (isRecording) {
+      // Stop recording and send transcript
+      const transcriptToSend = currentTranscript.trim();
+      setIsRecording(false);
+      setListening(false);
+      recognition.stop();
+      
+      // Send the transcript immediately
+      if (transcriptToSend) {
+        handleUserQuery(transcriptToSend);
+      }
+    } else {
+      // Start recording
+      setCurrentTranscript("");
+      setIsRecording(true);
+      try {
+        recognition.start();
+      } catch (err) {
+        console.error("Failed to start recording:", err);
+        setIsRecording(false);
+      }
+    }
+  }, [isRecording, supportsSpeech, currentTranscript, handleUserQuery]);
+
   const startSession = useCallback(async () => {
     setSessionActive(true);
     setError(null);
     setAssistantReply("");
+    setCurrentTranscript("");
     updateConversation([]);
     setStatus("greeting");
 
-    const greeting = "Hi, I am your voice assistant. How can I help you today?";
+    const greeting = "Hi, I am your voice assistant. Click the microphone button below to start talking!";
     await speak(greeting);
     setStatus("idle");
   }, [speak, updateConversation]);
@@ -194,8 +213,8 @@ Keep tone friendly, helpful, and supportive. If the learner is practicing Englis
 
     const recognition = new SpeechRecognition();
     recognition.lang = "en-US";
-    recognition.continuous = false;
-    recognition.interimResults = false;
+    recognition.continuous = true; // Changed to true for continuous recording
+    recognition.interimResults = true; // Changed to true to show interim results
 
     recognition.onstart = () => {
       setListening(true);
@@ -204,19 +223,21 @@ Keep tone friendly, helpful, and supportive. If the learner is practicing Englis
     };
 
     recognition.onresult = (event: any) => {
-      const transcript = Array.from(event.results)
-        .map((result: any) => result[0].transcript)
-        .join(" ");
-      recognition.stop();
-      setListening(false);
-      if (transcript) {
-        handleUserQuery(transcript);
+      let fullTranscript = "";
+      
+      // Build the complete transcript from all results
+      for (let i = 0; i < event.results.length; i++) {
+        fullTranscript += event.results[i][0].transcript;
       }
+      
+      // Set the complete transcript (don't accumulate)
+      setCurrentTranscript(fullTranscript);
     };
 
     recognition.onerror = (event: any) => {
       console.error("Speech recognition error:", event);
       setListening(false);
+      setIsRecording(false);
       if (sessionActive) {
         setStatus("idle");
       }
@@ -225,7 +246,8 @@ Keep tone friendly, helpful, and supportive. If the learner is practicing Englis
 
     recognition.onend = () => {
       setListening(false);
-      if (sessionActive) {
+      
+      if (sessionActive && status === "listening") {
         setStatus("idle");
       }
     };
@@ -248,21 +270,22 @@ Keep tone friendly, helpful, and supportive. If the learner is practicing Englis
     };
   }, [startSession]);
 
-  useEffect(() => {
-    if (sessionActive && !listening && !isSpeaking && supportsSpeech) {
-      const timeout = setTimeout(() => {
-        tryStartListening(true);
-      }, 300);
-      return () => clearTimeout(timeout);
-    }
-  }, [sessionActive, listening, isSpeaking, supportsSpeech, tryStartListening]);
+  // Remove auto-listening effect - manual control only
+  // useEffect(() => {
+  //   if (sessionActive && !listening && !isSpeaking && supportsSpeech) {
+  //     const timeout = setTimeout(() => {
+  //       tryStartListening(true);
+  //     }, 300);
+  //     return () => clearTimeout(timeout);
+  //   }
+  // }, [sessionActive, listening, isSpeaking, supportsSpeech, tryStartListening]);
 
   const statusMessage = useMemo(() => {
     if (!sessionActive) return "Session paused. Tap the mic to resume.";
     if (status === "greeting") return "Greeting you...";
     if (status === "responding") return "Explaining...";
     if (status === "listening") return "Listening to you...";
-    return isSpeaking ? "Sharing response..." : "Ready to listen.";
+    return isSpeaking ? "Sharing response..." : "Ready to listen. Click mic below to speak.";
   }, [sessionActive, status, isSpeaking]);
 
   const handleMicPress = () => {
@@ -362,6 +385,37 @@ Keep tone friendly, helpful, and supportive. If the learner is practicing Englis
             </p>
           )}
         </div>
+
+        {/* Display live transcript when recording */}
+        {currentTranscript && isRecording && (
+          <Card className="max-w-lg border-primary/20 bg-primary/5 p-4 text-left shadow-lg">
+            <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">You're saying...</p>
+            <p className="text-sm leading-relaxed text-foreground">{currentTranscript}</p>
+          </Card>
+        )}
+
+        {/* Manual recording control button */}
+        {sessionActive && supportsSpeech && (
+          <Button
+            onClick={toggleRecording}
+            size="lg"
+            variant={isRecording ? "destructive" : "default"}
+            className="flex items-center gap-2 rounded-full shadow-lg"
+            disabled={status === "responding" || isSpeaking}
+          >
+            {isRecording ? (
+              <>
+                <Send className="h-5 w-5" />
+                Send & Stop
+              </>
+            ) : (
+              <>
+                <Mic className="h-5 w-5" />
+                Click to Speak
+              </>
+            )}
+          </Button>
+        )}
       </div>
 
       {assistantReply && (

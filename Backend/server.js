@@ -23,6 +23,7 @@ import gameScoreRoutes from './routes/gameScores.js';
 import conceptRoutes from './routes/concepts.js';
 import studyRoomRoutes from './routes/studyRooms.js';
 import newsRoutes from './routes/news.js';
+import courseRoutes from './routes/courses.js';
 
 // Import models
 import StudyRoom from './models/StudyRoom.js';
@@ -98,6 +99,7 @@ app.use('/api/chats', chatRoutes);
 app.use('/api/learning-resources', learningResourceRoutes);
 app.use('/api/game-scores', gameScoreRoutes);
 app.use('/api/concepts', conceptRoutes);
+app.use('/api/courses', courseRoutes);
 app.use('/api/study-rooms', studyRoomRoutes);
 app.use('/api/news', newsRoutes);
 

@@ -17,7 +17,8 @@ import {
   Layers,
   ListChecks,
   TrendingUp,
-  BarChart3
+  BarChart3,
+  GraduationCap
 } from 'lucide-react';
 
 interface DashboardStats {
@@ -28,6 +29,8 @@ interface DashboardStats {
   totalConcepts: number;
   totalGameScores: number;
   totalResources: number;
+  totalCourses: number;
+  completedCourses: number;
   averageQuizScore: number;
   recentBooks: any[];
   recentQuizzes: any[];
@@ -47,7 +50,26 @@ const Dashboard = () => {
   useEffect(() => {
     if (user) {
       fetchDashboardData();
+      
+      // Set up auto-refresh every 1 minute (60 seconds)
+      const interval = setInterval(() => {
+        fetchDashboardData();
+      }, 60000);
+      
+      return () => clearInterval(interval);
     }
+  }, [user]);
+  
+  // Refresh when window regains focus (user comes back to dashboard)
+  useEffect(() => {
+    const handleFocus = () => {
+      if (user) {
+        fetchDashboardData();
+      }
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, [user]);
 
   const fetchDashboardData = async () => {
@@ -58,14 +80,16 @@ const Dashboard = () => {
       setError(null);
 
       // Fetch data from all endpoints
-      const [booksRes, quizzesRes, flashcardsRes, chatsRes, conceptsRes, gamesRes, resourcesRes] = await Promise.all([
+      const [booksRes, quizzesRes, flashcardsRes, chatsRes, conceptsRes, gamesRes, resourcesRes, coursesRes, coursesListRes] = await Promise.all([
         fetch(`${API_URL}/books/user/${user._id}`),
         fetch(`${API_URL}/quizzes/user/${user._id}`),
         fetch(`${API_URL}/flashcards/user/${user._id}`),
         fetch(`${API_URL}/chats/user/${user._id}`),
         fetch(`${API_URL}/concepts/user/${user._id}`),
         fetch(`${API_URL}/game-scores/user/${user._id}`),
-        fetch(`${API_URL}/learning-resources/user/${user._id}`)
+        fetch(`${API_URL}/learning-resources/user/${user._id}`),
+        fetch(`${API_URL}/courses/stats/${user._id}`),
+        fetch(`${API_URL}/courses?userId=${user._id}`)
       ]);
 
       const books = await booksRes.json();
@@ -75,6 +99,8 @@ const Dashboard = () => {
       const concepts = await conceptsRes.json();
       const games = await gamesRes.json();
       const resources = await resourcesRes.json();
+      const courseStats = await coursesRes.json();
+      const coursesList = await coursesListRes.json();
 
       // Calculate statistics
       const quizData = quizzes.success ? quizzes.data : [];
@@ -94,8 +120,17 @@ const Dashboard = () => {
         activityByDate[date] = 0;
       });
 
-      // Count activities by date
-      [...(books.data || []), ...(quizzes.data || []), ...(chats.data || [])].forEach((item: any) => {
+      // Count activities by date - include all activity types
+      [
+        ...(books.data || []), 
+        ...(quizzes.data || []), 
+        ...(flashcards.data || []),
+        ...(chats.data || []),
+        ...(concepts.data || []),
+        ...(games.data || []),
+        ...(resources.data || []),
+        ...(coursesList || [])
+      ].forEach((item: any) => {
         const itemDate = new Date(item.createdAt).toISOString().split('T')[0];
         if (activityByDate[itemDate] !== undefined) {
           activityByDate[itemDate]++;
@@ -110,6 +145,8 @@ const Dashboard = () => {
         totalConcepts: concepts.success ? concepts.data.length : 0,
         totalGameScores: games.success ? games.data.length : 0,
         totalResources: resources.success ? resources.data.length : 0,
+        totalCourses: courseStats.totalCourses || 0,
+        completedCourses: courseStats.completedCourses || 0,
         averageQuizScore: Math.round(avgScore),
         recentBooks: books.success ? books.data.slice(0, 5) : [],
         recentQuizzes: quizzes.success ? quizzes.data.slice(0, 5) : [],
@@ -233,13 +270,13 @@ const Dashboard = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Flashcard Sets</CardTitle>
-            <Layers className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Courses</CardTitle>
+            <GraduationCap className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalFlashcards}</div>
+            <div className="text-2xl font-bold">{stats.totalCourses}</div>
             <p className="text-xs text-muted-foreground">
-              Study materials
+              {stats.completedCourses} completed
             </p>
           </CardContent>
         </Card>
@@ -279,21 +316,33 @@ const Dashboard = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
                 <div className="text-center p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
                   <div className="text-2xl font-bold text-blue-600">{stats.totalBooks}</div>
                   <p className="text-xs text-muted-foreground">Books</p>
                 </div>
                 <div className="text-center p-3 bg-purple-50 dark:bg-purple-950/20 rounded-lg">
-                  <div className="text-2xl font-bold text-purple-600">{stats.totalConcepts}</div>
+                  <div className="text-2xl font-bold text-purple-600">{stats.totalQuizzes}</div>
+                  <p className="text-xs text-muted-foreground">Quizzes</p>
+                </div>
+                <div className="text-center p-3 bg-pink-50 dark:bg-pink-950/20 rounded-lg">
+                  <div className="text-2xl font-bold text-pink-600">{stats.totalFlashcards}</div>
+                  <p className="text-xs text-muted-foreground">Flashcards</p>
+                </div>
+                <div className="text-center p-3 bg-indigo-50 dark:bg-indigo-950/20 rounded-lg">
+                  <div className="text-2xl font-bold text-indigo-600">{stats.totalConcepts}</div>
                   <p className="text-xs text-muted-foreground">Concepts</p>
                 </div>
                 <div className="text-center p-3 bg-green-50 dark:bg-green-950/20 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600">{stats.totalGameScores}</div>
-                  <p className="text-xs text-muted-foreground">Games Played</p>
+                  <div className="text-2xl font-bold text-green-600">{stats.totalCourses}</div>
+                  <p className="text-xs text-muted-foreground">Courses</p>
                 </div>
                 <div className="text-center p-3 bg-orange-50 dark:bg-orange-950/20 rounded-lg">
-                  <div className="text-2xl font-bold text-orange-600">{stats.totalResources}</div>
+                  <div className="text-2xl font-bold text-orange-600">{stats.totalGameScores}</div>
+                  <p className="text-xs text-muted-foreground">Games</p>
+                </div>
+                <div className="text-center p-3 bg-cyan-50 dark:bg-cyan-950/20 rounded-lg">
+                  <div className="text-2xl font-bold text-cyan-600">{stats.totalResources}</div>
                   <p className="text-xs text-muted-foreground">Resources</p>
                 </div>
               </div>

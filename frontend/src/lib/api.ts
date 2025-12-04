@@ -126,5 +126,26 @@ export const conceptAPI = {
     apiCall(`/concepts/user/${userId}`),
 };
 
+// Course API
+export const courseAPI = {
+  create: (courseData: any) => 
+    apiCall('/courses', { method: 'POST', body: JSON.stringify(courseData) }),
+  
+  getUserCourses: (userId: string) => 
+    apiCall(`/courses?userId=${userId}`),
+  
+  getById: (id: string) => 
+    apiCall(`/courses/${id}`),
+  
+  markComplete: (id: string) => 
+    apiCall(`/courses/${id}/complete`, { method: 'PATCH' }),
+  
+  getStats: (userId: string) => 
+    apiCall(`/courses/stats/${userId}`),
+  
+  delete: (id: string) => 
+    apiCall(`/courses/${id}`, { method: 'DELETE' }),
+};
+
 // Health check
 export const healthCheck = () => apiCall('/health');

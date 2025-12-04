@@ -32,6 +32,7 @@ import {
   LogOut,
   Workflow,
   Wrench,
+  GraduationCap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -40,18 +41,19 @@ const mainItems = [
   { title: "Dashboard", url: "/", icon: GridIcon },
   { title: "Read a book", url: "/read-book", icon: BookStackIcon },
   { title: "Question Bot", url: "/question-bot", icon: Bot },
-  { title: "Concept Animator", url: "/concept-animator", icon: Sparkles },
-  { title: "Quiz Generator", url: "/quiz-generator", icon: ListChecks },
-  { title: "Recommendations", url: "/recommendations", icon: BookOpenIcon },
-  { title: "Flash Cards", url: "/flashcards", icon: Layers },
+  { title: "Course Generator", url: "/course-generator", icon: GraduationCap },
   { title: "Game Zone", url: "/game-zone", icon: Gamepad2 },
   { title: "Study Rooms", url: "/study-rooms", icon: Users },
-  { title: "News", url: "/news", icon: Newspaper },
   { title: "Hear & Learn", url: "/hear-and-learn", icon: Mic },
   { title: "Live Doubt Session", url: "/live-doubt", icon: Headphones },
 ];
 
 const toolsItems = [
+  { title: "Concept Animator", url: "/concept-animator", icon: Sparkles },
+  { title: "Quiz Generator", url: "/quiz-generator", icon: ListChecks },
+  { title: "Recommendations", url: "/recommendations", icon: BookOpenIcon },
+  { title: "Flash Cards", url: "/flashcards", icon: Layers },
+  { title: "News", url: "/news", icon: Newspaper },
   { title: "Flowchart Generator", url: "/flowchart-generator", icon: Workflow },
 ];
 
