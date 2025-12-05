@@ -2,7 +2,7 @@
 
 A comprehensive educational platform with AI-powered learning tools, interactive games, study rooms, and collaborative features.
 
-## 🌐 Live Demo
+## 🌐Live Demo
 
 - **Frontend**: [https://peekuthon-eduplatform.netlify.app](https://peekuthon-eduplatform.netlify.app)
 - **Backend API**: [https://peekuthon-education.onrender.com](https://peekuthon-education.onrender.com)
