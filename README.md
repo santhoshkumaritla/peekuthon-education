@@ -84,7 +84,7 @@ learnnest-dashboard-main/
 └── README.md
 ```
 
-## 🚀 Getting Started
+## 🚀Getting Started
 
 ### Prerequisites
 
@@ -227,7 +227,7 @@ VITE_GEMINI_CONCEPT_API_KEY=your_key
 VITE_GEMINI_GAMES_API_KEY=your_key
 ```
 
-## 🗄️ Database Models
+## 🗄️Database Models
 
 - **User** - User accounts and profiles
 - **Book** - Digital books and content
@@ -240,7 +240,7 @@ VITE_GEMINI_GAMES_API_KEY=your_key
 - **StudyRoom** - Virtual study rooms
 - **Message** - Room messages
 
-## 🤝 Contributing
+## 🤝Contributing
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
