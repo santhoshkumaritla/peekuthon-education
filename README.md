@@ -248,25 +248,12 @@ VITE_GEMINI_GAMES_API_KEY=your_key
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## 📄 License
 
-This project is licensed under the MIT License.
-
-## 👥 Authors
-
-- **Santhosh Kumar Itla** - [GitHub](https://github.com/santhoshkumaritla)
-
-## 🙏 Acknowledgments
+## 🙏Acknowledgments
 
 - Google Gemini AI for AI capabilities
 - shadcn/ui for beautiful components
 - MongoDB Atlas for database hosting
 - Render & Netlify for deployment
 
-## 📞 Support
 
-For support, email support@learnnest.com or open an issue on GitHub.
-
----
-
-Made with ❤️ for education
