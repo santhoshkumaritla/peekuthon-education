@@ -1,4 +1,4 @@
-# 🎓 LearnNest - Education Platform
+# 🎓Study Genie - Education Platform
 
 A comprehensive educational platform with AI-powered learning tools, interactive games, study rooms, and collaborative features.
 
