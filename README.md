@@ -9,7 +9,7 @@ A comprehensive educational platform with AI-powered learning tools, interactive
 
 ## ✨ Features
 
-### 📚 Learning Tools
+### 📚Learning Tools
 
 - **Quiz Generator** - AI-powered quiz generation
 - **Flashcard Generator** - Create interactive flashcards
@@ -19,27 +19,27 @@ A comprehensive educational platform with AI-powered learning tools, interactive
 - **Read Book** - Digital book reading experience
 - **Hear and Learn** - Audio-based learning
 
-### 🎮 Game Zone
+### 🎮Game Zone
 
 - **IQ Test** - Test your intelligence quotient
 - **Aptitude Test** - Assess problem-solving skills
 - **GK Test** - General knowledge challenges
 - **2048 Game** - Classic puzzle game
 
-### 👥 Collaboration Features
+### 👥Collaboration Features
 
 - **Study Rooms** - Virtual collaborative study spaces
 - **Real-time Chat** - Live messaging with participants
 - **Note Board** - Shared note-taking
 - **Media Sharing** - Share images and files
 
-### 📰 Additional Features
+### 📰Additional Features
 
 - **News Feed** - Latest educational news
 - **User Profiles** - Personalized dashboards
 - **Authentication** - Secure login/signup
 
-## 🛠️ Tech Stack
+## 🛠️Tech Stack
 
 ### Frontend
 
@@ -60,7 +60,7 @@ A comprehensive educational platform with AI-powered learning tools, interactive
 - **Multer** - File uploads
 - **GNews API** - News integration
 
-## 📦 Project Structure
+## 📦Project Structure
 
 ```
 learnnest-dashboard-main/
