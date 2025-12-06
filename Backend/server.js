@@ -24,6 +24,8 @@ import conceptRoutes from './routes/concepts.js';
 import studyRoomRoutes from './routes/studyRooms.js';
 import newsRoutes from './routes/news.js';
 import courseRoutes from './routes/courses.js';
+import aiRoutes from './routes/ai.js';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Import models
 import StudyRoom from './models/StudyRoom.js';
@@ -31,6 +33,9 @@ import Message from './models/Message.js';
 
 // Load environment variables
 dotenv.config();
+
+// Initialize Gemini AI
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || 'AIzaSyCIQ6E3eHINZaxpKjOfwedwwgY_xzZ6PV8');
 
 // Ensure uploads directory exists
 const uploadsDir = path.join(__dirname, 'uploads');
@@ -102,6 +107,7 @@ app.use('/api/concepts', conceptRoutes);
 app.use('/api/courses', courseRoutes);
 app.use('/api/study-rooms', studyRoomRoutes);
 app.use('/api/news', newsRoutes);
+app.use('/api/ai', aiRoutes);
 
 // File upload endpoint
 app.post('/api/upload', upload.single('file'), (req, res) => {
@@ -279,6 +285,141 @@ io.on('connection', (socket) => {
       const messageObj = message.toObject();
       io.to(roomId).emit('newMessage', messageObj);
       console.log(`✅ Message broadcasted successfully`);
+
+      // Check if message contains @ai - trigger AI response
+      if (content && content.includes('@ai')) {
+        console.log('🤖 @ai detected, processing AI response...');
+        
+        // Extract the question (remove @ai from the message)
+        const aiPrompt = content.replace('@ai', '').trim();
+        
+        // Get recent messages for context (last 5 messages)
+        const recentMessages = await Message.find({ roomId })
+          .sort({ timestamp: -1 })
+          .limit(5)
+          .lean();
+        
+        const context = recentMessages.reverse()
+          .map(m => `${m.username}: ${m.content}`)
+          .join('\n');
+
+        try {
+          // Use Gemini 2.0 Flash model
+          const model = genAI.getGenerativeModel({ 
+            model: 'gemini-2.0-flash',
+            generationConfig: {
+              temperature: 0.7,
+              topK: 40,
+              topP: 0.95,
+              maxOutputTokens: 2048,
+            }
+          });
+
+          // Build content parts
+          const parts = [];
+          
+          if (context) {
+            parts.push({ text: `Recent conversation context:\n${context}\n\n` });
+          }
+          
+          parts.push({ text: `Question: ${aiPrompt}` });
+
+          // If there's a file attached, process it
+          if (fileData && fileData.url) {
+            try {
+              const isImage = fileData.type?.startsWith('image/');
+              const isPDF = fileData.type === 'application/pdf' || fileData.name?.toLowerCase().endsWith('.pdf');
+              
+              if (isImage || isPDF) {
+                // Read the file from uploads directory
+                const filePath = path.join(__dirname, fileData.url);
+                
+                if (fs.existsSync(filePath)) {
+                  const fileBuffer = fs.readFileSync(filePath);
+                  const base64Data = fileBuffer.toString('base64');
+                  
+                  let mimeType = fileData.type;
+                  if (!mimeType || mimeType === 'application/octet-stream') {
+                    if (fileData.name?.toLowerCase().endsWith('.pdf')) {
+                      mimeType = 'application/pdf';
+                    } else if (fileData.name?.match(/\.(jpg|jpeg)$/i)) {
+                      mimeType = 'image/jpeg';
+                    } else if (fileData.name?.match(/\.png$/i)) {
+                      mimeType = 'image/png';
+                    } else if (fileData.name?.match(/\.gif$/i)) {
+                      mimeType = 'image/gif';
+                    } else if (fileData.name?.match(/\.webp$/i)) {
+                      mimeType = 'image/webp';
+                    }
+                  }
+                  
+                  console.log(`📎 Processing file for AI: ${fileData.name}, type: ${mimeType}`);
+                  
+                  parts.push({
+                    inlineData: {
+                      mimeType: mimeType,
+                      data: base64Data
+                    }
+                  });
+                  
+                  if (isImage) {
+                    parts.push({ text: '\n\nPlease analyze the attached image in your response.' });
+                  } else if (isPDF) {
+                    parts.push({ text: '\n\nPlease analyze the attached PDF document in your response.' });
+                  }
+                } else {
+                  console.warn(`⚠️ File not found: ${filePath}`);
+                }
+              }
+            } catch (fileError) {
+              console.error('❌ Error processing file for AI:', fileError);
+            }
+          }
+
+          // Generate response with system instruction
+          const result = await model.generateContent({
+            contents: [{ role: 'user', parts }],
+            systemInstruction: {
+              parts: [{
+                text: 'You are an AI assistant in a study room helping students learn. Provide clear, educational, and friendly responses. When analyzing images or PDFs, provide detailed insights relevant to the question. If the question is unclear or needs more context from the conversation history, use the provided context. Keep responses concise but informative.'
+              }]
+            }
+          });
+
+          const response = await result.response;
+          const aiResponse = response.text();
+
+          // Create AI response message
+          const aiMessage = new Message({
+            roomId,
+            userId: 'ai-bot',
+            username: 'AI Assistant',
+            content: aiResponse,
+            type: 'user'
+          });
+          await aiMessage.save();
+
+          console.log('✅ AI response generated and saved');
+
+          // Broadcast AI response to room
+          io.to(roomId).emit('newMessage', aiMessage.toObject());
+          console.log('✅ AI response broadcasted to room');
+
+        } catch (aiError) {
+          console.error('❌ Error generating AI response:', aiError);
+          
+          // Send error message to room
+          const errorMessage = new Message({
+            roomId,
+            userId: 'ai-bot',
+            username: 'AI Assistant',
+            content: 'Sorry, I encountered an error processing your request. Please try again.',
+            type: 'user'
+          });
+          await errorMessage.save();
+          io.to(roomId).emit('newMessage', errorMessage.toObject());
+        }
+      }
     } catch (error) {
       console.error('❌ Error sending message:', error);
     }

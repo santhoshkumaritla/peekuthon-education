@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Paperclip, X, FileText, Image as ImageIcon, Download } from 'lucide-react';
+import { Send, Paperclip, X, FileText, Image as ImageIcon, Download, Sparkles } from 'lucide-react';
 import { useSocket } from '@/contexts/SocketContext';
 import { Message } from '@/types/study-room';
 import { API_BASE_URL } from '@/lib/api';
@@ -20,6 +20,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({ messages, roomId, userId, username })
   const [isSending, setIsSending] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [showAiHint, setShowAiHint] = useState(false);
   const { socket, isConnected } = useSocket();
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -29,6 +30,37 @@ const ChatBox: React.FC<ChatBoxProps> = ({ messages, roomId, userId, username })
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  // Check if message contains @ai to show hint
+  useEffect(() => {
+    setShowAiHint(newMessage.includes('@ai'));
+  }, [newMessage]);
+
+  // Format message content with markdown-style bold
+  const formatMessage = (content: string) => {
+    const parts: (string | JSX.Element)[] = [];
+    const boldRegex = /\*\*(.+?)\*\*/g;
+    let lastIndex = 0;
+    let match;
+    let keyIndex = 0;
+
+    while ((match = boldRegex.exec(content)) !== null) {
+      // Add text before the bold part
+      if (match.index > lastIndex) {
+        parts.push(content.substring(lastIndex, match.index));
+      }
+      // Add bold text
+      parts.push(<strong key={`bold-${keyIndex++}`}>{match[1]}</strong>);
+      lastIndex = match.index + match[0].length;
+    }
+
+    // Add remaining text
+    if (lastIndex < content.length) {
+      parts.push(content.substring(lastIndex));
+    }
+
+    return parts.length > 0 ? parts : [content];
+  };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -198,9 +230,16 @@ const ChatBox: React.FC<ChatBoxProps> = ({ messages, roomId, userId, username })
                   }`}
                 >
                   {msg.type !== 'system' && msg.userId !== userId && (
-                    <p className="text-xs font-semibold mb-1">{msg.username}</p>
+                    <p className="text-xs font-semibold mb-1 flex items-center gap-1">
+                      {msg.username}
+                      {msg.userId === 'ai-bot' && (
+                        <Sparkles className="w-3 h-3 text-yellow-500" />
+                      )}
+                    </p>
                   )}
-                  <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
+                  <div className="text-sm whitespace-pre-wrap break-words">
+                    {formatMessage(msg.content)}
+                  </div>
                   {renderFilePreview(msg)}
                   <p className="text-xs opacity-70 mt-1">
                     {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -214,6 +253,12 @@ const ChatBox: React.FC<ChatBoxProps> = ({ messages, roomId, userId, username })
           {!isConnected && (
             <div className="mb-2 text-xs text-red-600 bg-red-50 px-3 py-2 rounded">
               ⚠️ Disconnected - Reconnecting...
+            </div>
+          )}
+          {showAiHint && (
+            <div className="mb-2 text-xs text-blue-600 bg-blue-50 dark:bg-blue-900/20 px-3 py-2 rounded flex items-center gap-2">
+              <Sparkles className="w-4 h-4" />
+              <span>AI Assistant will respond to your message with @ai</span>
             </div>
           )}
           {selectedFile && (
@@ -247,7 +292,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({ messages, roomId, userId, username })
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder={isConnected ? "Type a message..." : "Connecting..."}
+              placeholder={isConnected ? "Type a message... (use @ai to ask AI)" : "Connecting..."}
               className="flex-1"
               disabled={!isConnected || isSending || uploading}
             />
